@@ -180,6 +180,8 @@ int parse_tw_append( modparam_t type, void* val)
 		return 0;
 	s = (char*)val;
 
+	ha = 0;
+
 	/* start parsing - first the name */
 	while( *s && isspace((int)*s) )  s++;
 	if ( !*s || *s==':')
@@ -393,6 +395,7 @@ parse_error:
 	LOG(L_ERR,"ERROR:tm:parse_tw_append: parse error in <%s> around "
 		"position %ld\n", (char*)val, (long)(s-(char*)val));
 error:
+	pkg_free( ha );
 	return -1;
 }
 
@@ -426,17 +429,20 @@ int fixup_t_write( void** param, int param_no)
 			twi->action.len = s - twi->action.s;
 			if (twi->action.len==0) {
 				LOG(L_ERR,"ERROR:tm:fixup_t_write: empty action name\n");
+				pkg_free( twi );
 				return E_CFG;
 			}
 			s++;
 			if (*s==0) {
 				LOG(L_ERR,"ERROR:tm:fixup_t_write: empty append name\n");
+				pkg_free( twi );
 				return E_CFG;
 			}
 			twi->append = search_tw_append( s, strlen(s));
 			if (twi->append==0) {
 				LOG(L_ERR,"ERROR:tm:fixup_t_write: unknown append name "
 					"<%s>\n",s);
+				pkg_free( twi );
 				return E_CFG;
 			}
 		} else {
